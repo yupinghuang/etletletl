@@ -24,8 +24,8 @@ def checkColumnSchema(df: DataFrame, required_schema: StructType, nullable_check
         if len(nullable_mistach) > 0:
             raise ValueError(f"Columns should not be nullable: {nullable_mistach}")
 
-def dropNaAndUpdateSchema(spark, filtered, required_fields):
-    drop_na = filtered.dropna(subset=required_fields)
+def dropNaAndUpdateSchema(spark, df, required_fields):
+    drop_na = df.dropna(subset=required_fields)
     new_schema = copy.deepcopy(drop_na.schema)
 
     for field in new_schema.fields:

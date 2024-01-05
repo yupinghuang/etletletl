@@ -3,7 +3,7 @@ from .helpers import PySparkTestCase
 
 from pyspark.sql.types import StructType
 
-from sensorsetl.utils import checkColumnSchema
+from sensorsetl.utils import checkColumnSchema, dropNaAndUpdateSchema
 
 class TestUtils(PySparkTestCase):
     def setUp(self):
@@ -26,3 +26,11 @@ class TestUtils(PySparkTestCase):
     def testCheckColumnSchemaPass(self):
         schema = StructType().add("field1", "integer").add("field2", "integer", nullable=True)
         checkColumnSchema(self.df, schema, nullable_check=True)
+
+    def TestDropNaAndUpdateSchema(self):
+        ans = dropNaAndUpdateSchema(self.spark, self.df, ["field2"])
+        self.assertEqual(ans.count(), 1)
+        self.assertEqual(ans.schema["field2"].nullable, False)
+
+if __name__ == '__main__':
+    unittest.main()

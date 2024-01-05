@@ -1,5 +1,4 @@
 import logging
-import statistics
 from typing import List
 from datetime import timedelta
 from functools import reduce
@@ -101,23 +100,26 @@ if __name__ == '__main__':
     and the output statistics table will be updated.
 
     """
-    spark = SparkSession.builder.appName("Sensors ETL Pipeline").enableHiveSupport().getOrCreate()
+    spark = SparkSession.builder.appName("Sensors ETL Pipeline").getOrCreate()
     spark.sparkContext.setLogLevel(pplConf.spark_log_level)
 
     source = parquetSource(spark, "sample.parquet")
     checkColumnSchema(source, pplConf.input_schema)
     cleaned = cleanStringDropNa(spark, source)
+
     if cleaned.count() == 0:
         logger.warning("No valid rows in input dataset.")
         exit(0)
-    cleaned.groupBy("run_uuid", "robot_id").pivot('field', pplConf.pivot_field_list).count().fillna(0).show()
+
+    if pplConf.DEBUG:
+        cleaned.groupBy("run_uuid", "robot_id").pivot('field', pplConf.pivot_field_list).count().fillna(0).show()
     pivot = downSampleAndPivot(cleaned, timedelta(seconds=0.01), pplConf.pivot_field_list)
     derived = addDerivedFeatures(pivot) 
 
-    df = derived
-
     statsDf = calcRuntimeStats(derived)
-    df.printSchema()
+
+    derived.printSchema()
+    statsDf.printSchema()
 
     derivedSink = DerivedSink(spark).write(derived)
     statisticsSink = StatisticsSink(spark).write(statsDf)
