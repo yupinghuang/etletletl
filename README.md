@@ -1,12 +1,15 @@
 # etletletl
 ## Environment
 I used https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-pyspark-notebook for the container image.
+Follow the next few sections for testing the pipeline in this container.
 
 ## Run pipeline
 To start the container (which exposes ports for a Jupyter notebook and the Spark UI)
 ```
-docker run --name suspicious_etl -detach --rm -p 18888:8888 -p 4040:4040 -w /home/jovyan/work -v "${PWD}":/home/jovyan/work quay.io/jupyter/pyspark-notebook:2023-10-20
+docker run --name suspicious_etl -detach --rm -w /home/jovyan/work -v "${PWD}":/home/jovyan/work quay.io/jupyter/pyspark-notebook:2023-10-20
 ```
+
+You can optionally add `-p <local-port>:8888 -p <another-local-port>:4040` to expose the ports for Jupyter notebooks and Spark UI.
 
 Then run the ETL pipeline
 ```
