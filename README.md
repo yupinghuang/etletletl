@@ -1,4 +1,6 @@
 # etletletl
+For design, see DESIGN.md. 
+
 ## Environment
 I used https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-pyspark-notebook for the container image.
 Follow the next few sections for testing the pipeline in this container.

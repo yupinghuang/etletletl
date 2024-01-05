@@ -3,10 +3,10 @@ from pyspark.sql.types import StructType, StructField, TimestampType, StringType
 
 input_schema = StructType([
     StructField("time", TimestampType(), nullable=False),
+    StructField("run_uuid", LongType(), nullable=False),
     StructField("field", StringType(), nullable=False),
     StructField("robot_id", LongType(), nullable=False),
     StructField("value", DoubleType(), nullable=False),
-    StructField("run_uuid", LongType(), nullable=True),
     StructField("sensor_type", StringType(), nullable=True)
 ])
 

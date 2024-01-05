@@ -94,11 +94,6 @@ def calcRuntimeStats(derived: DataFrame) -> DataFrame:
 if __name__ == '__main__':
     """
     Assumptions: this job is invoked regularly to process a small amount of data.
-
-    Assume this job has access to all the data for a job_uuid. If that is not the
-    case. If that is not the case, this job can be rerun but with all the data
-    and the output statistics table will be updated.
-
     """
     spark = SparkSession.builder.appName("Sensors ETL Pipeline").getOrCreate()
     spark.sparkContext.setLogLevel(pplConf.spark_log_level)
