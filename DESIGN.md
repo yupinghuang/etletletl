@@ -25,6 +25,9 @@ The pipeline steps are as follows:
 
 ```
 parquetSource -> cleanStringDropNa -> downsampleAndPivot -> addDerivedFeatures -> calcRuntimeStats
+                                                                                |
+                                                                                |
+                                                                                |-> squashRobotId
 ```
 
 I have not looked at what Spark actually did with the steps. In principle, `cleanStringDropNa` is parallelizable across all rows

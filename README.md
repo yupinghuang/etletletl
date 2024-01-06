@@ -6,6 +6,8 @@ I used https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.ht
 Follow the next few sections for testing the pipeline in this container.
 
 ## Run pipeline
+Clone this repo and cd into the directory.
+
 To start the container (which exposes ports for a Jupyter notebook and the Spark UI)
 ```
 docker run --name suspicious_etl -detach --rm -w /home/jovyan/work -v "${PWD}":/home/jovyan/work quay.io/jupyter/pyspark-notebook:2023-10-20
