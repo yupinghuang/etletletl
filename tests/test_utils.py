@@ -1,4 +1,3 @@
-from sqlalchemy import Nullable
 from .helpers import PySparkTestCase
 
 from pyspark.sql.types import StructType
@@ -31,6 +30,3 @@ class TestUtils(PySparkTestCase):
         ans = dropNaAndUpdateSchema(self.spark, self.df, ["field2"])
         self.assertEqual(ans.count(), 1)
         self.assertEqual(ans.schema["field2"].nullable, False)
-
-if __name__ == '__main__':
-    unittest.main()
