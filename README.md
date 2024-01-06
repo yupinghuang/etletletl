@@ -15,7 +15,7 @@ You can optionally add `-p <local-port>:8888 -p <another-local-port>:4040` to ex
 
 Then run the ETL pipeline
 ```
-docker exec -it suspicious_etl /usr/local/spark/bin/spark-submit --master local\[4\] ./sensors-etl-pipeline.py
+docker exec -it suspicious_etl /usr/local/spark/bin/spark-submit --master local\[4\] ./sensors_etl_pipeline.py
 ```
 which runs the pipeline with 4 threads. Depending on your shell, you may have to drop the espcaing for `[]`.
 To run the script with a single worker thread, use `--master local`.
