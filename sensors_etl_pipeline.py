@@ -63,6 +63,7 @@ def downSampleAndPivot(df: DataFrame, interval: timedelta,
 
 def addDerivedFeatures(pivot: DataFrame) -> DataFrame:
     win = Window.partitionBy("run_uuid", "robot_id").orderBy("time")
+    # TODO with with NULLs better by using bigger windows
     time_ms = F.unix_millis(pivot.time)
     df = pivot.withColumn('vx', dydx(pivot.x, time_ms, win)) \
         .withColumn('vy', dydx(pivot.y, time_ms, win)) \
@@ -91,6 +92,8 @@ def squashRobotId(derived: DataFrame, fieldList: List[str]) -> DataFrame:
 
 def calcRuntimeStats(derived: DataFrame) -> DataFrame:
     win = Window.partitionBy("run_uuid", "robot_id").orderBy("time")
+    # TODO with with NULLs better by using bigger windows
+    time_ms = F.unix_millis(pivot.time)
     derived = derived.withColumn('delta_x_norm',
             F.sqrt((F.lag(derived.x).over(win) - derived.x)**2) + 
             F.sqrt((F.lag(derived.y).over(win) - derived.y)**2) +
@@ -99,7 +102,7 @@ def calcRuntimeStats(derived: DataFrame) -> DataFrame:
         F.min('time').alias('start_time'),
         F.max('time').alias('stop_time'),
         (F.max('time') - F.min('time')).alias('total_runtime'),
-        F.sum('delta_x_norm').alias('total_distance')
+        F.sum(F.filter('delta_x_norm', F.isnotnull)).alias('total_distance')
     )
     return statsDf
 
