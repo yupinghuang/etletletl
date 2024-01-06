@@ -1,3 +1,4 @@
+import datetime
 from pyspark.sql.types import StructType, StructField, TimestampType, StringType, LongType, DoubleType
 
 
@@ -25,7 +26,7 @@ Pipeline run parameters
 DEBUG = False
 
 spark_log_level = 'WARN'
-resample_interval = ["1min"]
+downsample_interval = datetime.timedelta(seconds=0.01)
 
 
 # Output

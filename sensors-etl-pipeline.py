@@ -1,5 +1,6 @@
 import logging
 from typing import List
+import copy
 from datetime import timedelta
 from functools import reduce
 
@@ -57,9 +58,8 @@ def downSampleAndPivot(df: DataFrame, interval: timedelta,
                                   [F.when(pivot[f].isNull(), 1).otherwise(0)
                                    for f in fieldList])).alias('avg_null_field')]
         pivot.groupBy('run_uuid', 'robot_id').agg(*agg_exprs).show()
-    pivot = pivot.withColumn("time", pivot.window.start).drop("window")
+    pivot = pivot.withColumn("time", pivot.window.start)
     return pivot
-
 
 def addDerivedFeatures(pivot: DataFrame) -> DataFrame:
     win = Window.partitionBy("run_uuid", "robot_id").orderBy("time")
@@ -77,6 +77,18 @@ def addDerivedFeatures(pivot: DataFrame) -> DataFrame:
 
     return df
 
+def squashRobotId(derived: DataFrame, fieldList: List[str]) -> DataFrame:
+    squash = derived.groupBy('window', 'run_uuid') \
+        .pivot('robot_id', pplConf.robot_ids) \
+        .agg(
+            *[F.last_value(f, ignoreNulls=True).alias(f) for f in fieldList ]
+            )
+    for f in fieldList:
+        for r in pplConf.robot_ids:
+            squash = squash.withColumnRenamed('_'.join([str(r), f]), '_'.join([f, str(r)]))
+    squash = squash.withColumn("time", squash.window.start)
+    return squash
+
 def calcRuntimeStats(derived: DataFrame) -> DataFrame:
     win = Window.partitionBy("run_uuid", "robot_id").orderBy("time")
     derived = derived.withColumn('delta_x_norm',
@@ -92,9 +104,6 @@ def calcRuntimeStats(derived: DataFrame) -> DataFrame:
     return statsDf
 
 if __name__ == '__main__':
-    """
-    Assumptions: this job is invoked regularly to process a small amount of data.
-    """
     spark = SparkSession.builder.appName("Sensors ETL Pipeline").getOrCreate()
     spark.sparkContext.setLogLevel(pplConf.spark_log_level)
 
@@ -108,13 +117,20 @@ if __name__ == '__main__':
 
     if pplConf.DEBUG:
         cleaned.groupBy("run_uuid", "robot_id").pivot('field', pplConf.pivot_field_list).count().fillna(0).show()
-    pivot = downSampleAndPivot(cleaned, timedelta(seconds=0.01), pplConf.pivot_field_list)
+    pivot = downSampleAndPivot(cleaned, pplConf.downsample_interval, pplConf.pivot_field_list)
     derived = addDerivedFeatures(pivot) 
 
     statsDf = calcRuntimeStats(derived)
-
-    derived.printSchema()
+    squashDf = squashRobotId(derived, pplConf.pivot_field_list +
+                             ['vx', 'vy', 'vz', 'ax', 'ay', 'az', 'f', 'v', 'a']) \
+                             .drop('window')
+    newSquashSchema = copy.deepcopy(squashDf.schema)
+    newSquashSchema['time'].nullable = False
+    squashDf = spark.createDataFrame(squashDf.rdd, newSquashSchema)
     statsDf.printSchema()
+    statsDf.show(4)
+    squashDf.printSchema()
+    squashDf.show(4)
 
-    derivedSink = DerivedSink(spark).write(derived)
+    derivedSink = DerivedSink(spark).write(squashDf)
     statisticsSink = StatisticsSink(spark).write(statsDf)
