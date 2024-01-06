@@ -65,5 +65,5 @@ Then one can run sql queries using the `datasink` module
 Start bash shell inside the container, then
 ```
 export PYTHONPATH=/usr/local/spark/python:/usr/local/spark-3.5.0-bin-hadoop3/python/lib/py4j-0.10.9.7-src.zip
-python -m unittest tests
+python -m unittest
 ```
